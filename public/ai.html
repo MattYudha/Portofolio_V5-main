@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chatbot Matt</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Menambahkan library compromise.js -->
+    <script src="https://cdn.jsdelivr.net/npm/compromise@13.0.0/builds/compromise.min.js"></script>
+    <style>
+      /* Animasi bounce untuk ikon chatbot */
+      @keyframes bounce {
+        0%,
+        20%,
+        50%,
+        80%,
+        100% {
+          transform: translateY(0);
+        }
+        40% {
+          transform: translateY(-20px); /* Lebih tinggi */
+        }
+        60% {
+          transform: translateY(-10px);
+        }
+        70% {
+          transform: translateY(-5px);
+        }
+        90% {
+          transform: translateY(-2px);
+        }
+      }
+
+      .bounce {
+        animation: bounce 1.5s cubic-bezier(0.25, 1, 0.3, 1); /* Lebih smooth dan jatuh lebih lambat */
+        animation-iteration-count: 3; /* Berjalan selama 3 kali (4.5 detik total) */
+      }
+
+      /* Animasi muncul dari ikon */
+      @keyframes slideUp {
+        0% {
+          opacity: 0;
+          transform: translateY(40px) scale(0.7); /* Mulai dari bawah dan lebih kecil */
+        }
+        60% {
+          opacity: 1;
+          transform: translateY(-5px) scale(1.05); /* Sedikit ke atas untuk efek popping */
+        }
+        100% {
+          transform: translateY(0) scale(1);
+          opacity: 1;
+        }
+      }
+
+      @keyframes slideDown {
+        0% {
+          transform: translateY(0) scale(1);
+          opacity: 1;
+        }
+        40% {
+          transform: translateY(-5px) scale(1.05); /* Efek popping sebelum turun */
+        }
+        100% {
+          opacity: 0;
+          transform: translateY(40px) scale(0.7); /* Kembali mengecil dan turun */
+        }
+      }
+
+      .slide-up {
+        animation: slideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+      }
+
+      .slide-down {
+        animation: slideDown 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+      }
+    </style>
+  </head>
+  <body class="bg-black-300 flex justify-center items-center h-screen">
+    <!-- Ikon AI -->
+    <div
+      id="chatbot-icon"
+      class="w-16 h-16 bg-blue-800 rounded-full fixed bottom-6 right-6 flex items-center justify-center cursor-pointer shadow-lg hover:scale-105 transition-transform duration-300 bounce"
+      onclick="toggleChatbot()"
+    >
+      <img
+        src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png"
+        alt="AI Icon"
+        class="w-8 h-8"
+      />
+    </div>
+
+    <!-- Container Chatbot (disembunyikan) -->
+    <div
+      id="chatbot-container"
+      class="fixed bottom-24 right-6 w-80 bg-blue-800 shadow-2xl rounded-lg overflow-hidden border border-gray-300 transform transition-all duration-300 ease-in-out opacity-0 hidden"
+    >
+      <div
+        class="bg-blue-900 text-white p-3 text-center font-semibold flex justify-between items-center"
+      >
+        <span>Chatbot Matt</span>
+        <button
+          onclick="toggleChatbot()"
+          class="text-white hover:text-white-100 focus:outline-none"
+        >
+          ✕
+        </button>
+      </div>
+      <div
+        id="chatbot-messages"
+        class="h-52 p-3 overflow-y-auto border-b border-gray-300"
+      ></div>
+      <div class="flex p-3">
+        <input
+          type="text"
+          id="chatbot-input"
+          class="flex-1 border border-gray-300 rounded-lg p-2 focus:outline-none focus:border-blue-500 transition-colors duration-300"
+          placeholder="Tanya Tentang Matt"
+          onkeypress="if(event.key === 'Enter') sendMessage()"
+        />
+        <button
+          onclick="sendMessage()"
+          class="ml-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-800 transition-colors duration-300"
+        >
+          Kirim
+        </button>
+      </div>
+    </div>
+
+    <script>
+      function toggleChatbot() {
+        const chatbotContainer = document.getElementById("chatbot-container");
+        const chatbotIcon = document.getElementById("chatbot-icon");
+
+        if (chatbotContainer.classList.contains("hidden")) {
+          // Tampilkan chatbot dengan animasi slide-up
+          chatbotContainer.classList.remove("hidden");
+          chatbotContainer.classList.remove("opacity-0");
+          chatbotContainer.classList.add("slide-up");
+          setTimeout(() => {
+            chatbotContainer.classList.remove("slide-up"); // Hapus animasi setelah selesai
+          }, 600); // Sesuaikan dengan durasi animasi
+        } else {
+          // Sembunyikan chatbot dengan animasi slide-down
+          chatbotContainer.classList.add("slide-down");
+          setTimeout(() => {
+            chatbotContainer.classList.add("hidden");
+            chatbotContainer.classList.remove("slide-down"); // Hapus animasi setelah selesai
+          }, 600); // Sesuaikan dengan durasi animasi
+        }
+
+        // Tambahkan efek bounce pada ikon
+        chatbotIcon.classList.add("bounce");
+        setTimeout(() => {
+          chatbotIcon.classList.remove("bounce"); // Hentikan bounce setelah 1 detik
+        }, 1000);
+      }
+
+      function sendMessage() {
+        const userInput = document.getElementById("chatbot-input").value;
+        const chatBox = document.getElementById("chatbot-messages");
+
+        if (!userInput.trim()) return;
+
+        // Tambahkan pesan pengguna ke chatbox
+        const userMessage = document.createElement("p");
+        userMessage.className = "text-right text-white mb-2";
+        userMessage.innerHTML = `<strong>Anda:</strong> ${userInput}`;
+        chatBox.appendChild(userMessage);
+
+        // Tambahkan indikator typing
+        const typingIndicator = document.createElement("p");
+        typingIndicator.className = "text-left text-white italic mb-2";
+        typingIndicator.innerHTML = "Chatbot sedang mengetik...";
+        chatBox.appendChild(typingIndicator);
+        chatBox.scrollTop = chatBox.scrollHeight; // Scroll ke bawah
+
+        // Simulasi delay untuk chatbot
+        setTimeout(() => {
+          chatBox.removeChild(typingIndicator); // Hapus indikator typing
+          const botResponse = getBotResponse(userInput); // Dapatkan respons chatbot
+          typeMessage(botResponse, chatBox); // Tampilkan respons dengan efek mengetik
+        }, 1500);
+
+        document.getElementById("chatbot-input").value = ""; // Kosongkan input
+      }
+
+      // Fungsi untuk menampilkan pesan dengan efek mengetik
+      function typeMessage(message, chatBox) {
+        const botMessage = document.createElement("p");
+        botMessage.className = "text-left text-white mb-2";
+        chatBox.appendChild(botMessage);
+
+        let i = 0;
+        const typingSpeed = 30; // Kecepatan mengetik (ms per karakter)
+
+        const typingInterval = setInterval(() => {
+          if (i < message.length) {
+            botMessage.innerHTML = `<strong>Chatbot:</strong> ${message.substring(
+              0,
+              i + 1
+            )}`;
+            i++;
+            chatBox.scrollTop = chatBox.scrollHeight; // Scroll ke bawah
+          } else {
+            clearInterval(typingInterval); // Hentikan efek mengetik
+          }
+        }, typingSpeed);
+      }
+
+      function getBotResponse(input) {
+        const doc = nlp(input.toLowerCase());
+        const now = new Date();
+
+        const responses = {
+          biodata:
+            "Matt adalah seorang mahasiswa Universitas Pamulang yang saat ini berada di semester 6. Dia sangat antusias untuk berkarir di dunia IT suatu hari nanti. Hobi Matt adalah mengerjakan berbagai proyek IT umur matt adalah 22 di tahun ini dan tanggal lahir matt adalah 20 maret 2002 Sekarang Matt Tinggal Di Gading Serpong Tangerang Banten. Jika kamu ingin tahu lebih banyak tentang Matt, kamu bisa cek bagian 'About Me' di website ini. Terima kasih sudah bertanya! 😊",
+
+          fungsi:
+            "Saya adalah bot Matt yang dirancang untuk membantu kamu mengenal lebih jauh tentang Matt, termasuk skill, pengalaman, dan proyek-proyeknya. Ada yang bisa saya bantu?",
+
+          halo: "Halo! Apa kabar? Saya bot Matt, siap membantu kamu mengenal lebih jauh tentang Matt. Ada yang bisa saya bantu?",
+
+          hai: "Hai! Gimana nih, ada yang bisa saya bantu? 😄",
+
+          kabar:
+            "Saya selalu baik-baik saja, karena saya adalah bot yang siap membantumu kapan saja. Kamu gimana?",
+
+          terimakasih: "Sama-sama! Senang bisa membantu kamu. 😊",
+
+          siapa:
+            "Saya adalah bot AI Matt yang siap membantumu mengenal lebih jauh tentang Matt. Ada yang mau ditanyakan?",
+
+          pagi: "Selamat pagi! Semoga harimu penuh semangat dan produktif! 🌞",
+
+          siang:
+            "Selamat siang! Ada yang bisa saya bantu? Jangan lupa makan siang ya! 🍴",
+
+          sore: "Selamat sore! Jangan lupa istirahat sejenak setelah seharian beraktivitas. 😊",
+
+          malam:
+            "Selamat malam! Semoga kamu bisa beristirahat dengan nyenyak malam ini. 🌙",
+
+          umur: "umur matt adalah 22 di tahun ini.",
+
+          "tanggal lahir": "tanggal lahir matt adalah 20 maret 2002",
+
+          lahir: "tanggal lahir matt adalah 20 maret 2002",
+
+          tinggal: "Sekarang Matt Tinggal Di Gading Serpong Tangerang Banten",
+
+          "makanan kesukaan": "Matt suka sekali makan tumis kol dan ayam bakar",
+
+          "suka makan apa": "Matt suka sekali makan tumis kol dan ayam bakar",
+
+          "lagu kesukaan": "Matt Suka sekali lagu To My Youth",
+          "suka lagu apa": "Matt Suka sekali lagu To My Youth",
+
+          nama: "Nama saya adalah bot AI Matt. Saya siap membantumu kapan saja!",
+
+          "kamu lakukan":
+            "Saya sedang menunggu pertanyaanmu seputar portofolio Matt. Ada yang bisa saya bantu?",
+
+          ngapain:
+            "Saya sedang menunggu pertanyaanmu seputar portofolio Matt. Ada yang bisa saya bantu?",
+
+          lucu: "Haha, terima kasih! Saya selalu berusaha untuk menghibur. 😄",
+
+          nama: "Nama saya adalah bot AI Matt, dibuat khusus untuk membantumu mengenal Matt lebih jauh.",
+
+          "cerita lucu":
+            "Kenapa ayam menyeberang jalan? Karena dia ingin ke seberang! 🐔",
+
+          cinta:
+            "Cinta itu seperti angin, tidak terlihat tapi bisa dirasakan. ❤️",
+
+          hobi: "Hobi saya adalah menjawab pertanyaan dan belajar hal baru. Kamu punya hobi apa?",
+
+          senang: "Senang juga bisa berbicara denganmu! 😊",
+
+          sedih: "Jangan sedih, ya! Saya di sini untuk menemanimu. 😊",
+
+          bosan:
+            "Kalau bosan, coba cari aktivitas seru atau ngobrol dengan saya! 😄",
+
+          kenapa:
+            "Kenapa ya? Bisa ceritakan lebih detail? Saya siap mendengarkan!",
+
+          "bagaimana cara":
+            "Tentu! Saya bisa membantu. Apa yang ingin kamu ketahui?",
+
+          cuaca:
+            "Saya tidak bisa melihat cuaca langsung, tapi kamu bisa cek aplikasi cuaca untuk info terkini! ☀️🌧️",
+
+          lelah:
+            "Istirahat dulu, ya! Jangan lupa minum air putih yang cukup. 💧",
+
+          "ulang tahun":
+            "Selamat ulang tahun! Semoga harimu penuh kebahagiaan dan keberkahan! 🎉",
+
+          mimpi:
+            "Mimpi adalah kunci untuk menaklukkan dunia. Teruslah bermimpi dan berusaha! 🌟",
+
+          makan:
+            "Jangan lupa makan yang bergizi agar tetap sehat dan berenergi! 🍎",
+
+          minum: "Jangan lupa minum air putih yang cukup hari ini! 💧",
+
+          favoritmu:
+            "Favorit saya adalah membantu kamu! Kamu punya favorit apa?",
+
+          "film favorit":
+            "Saya tidak bisa menonton film, tapi saya bisa merekomendasikan beberapa film bagus! 🎬",
+
+          musik: "Saya suka semua jenis musik! Kamu suka musik apa? 🎵",
+
+          buku: "Saya suka semua buku! Membaca itu menyenangkan dan menambah pengetahuan. 📚",
+
+          robot: "Ya, saya adalah robot AI yang siap membantumu kapan saja! 🤖",
+
+          manusia:
+            "Saya bukan manusia, tapi saya bisa berbicara seperti manusia! 😄",
+
+          makanan:
+            "Saya tidak bisa makan, tapi saya bisa memberi rekomendasi makanan enak! 🍕",
+
+          "langit biru": "Karena hamburan cahaya oleh atmosfer Bumi! 🌍",
+
+          tebak:
+            "Aku punya tebakan nih! Kenapa ikan tidak sekolah? Karena sudah punya insang! 🐟",
+
+          permainan:
+            "Saya bisa merekomendasikan game seru untuk kamu mainkan! Apa genre favoritmu? 🎮",
+
+          berita:
+            "Saya bisa membantumu mencari berita terkini. Mau tahu tentang apa? 📰",
+
+          rahasia:
+            "Rahasia? Saya bisa menyimpannya, tapi jangan terlalu penasaran ya! 😉",
+
+          "jam berapa": `Sekarang jam ${new Date().getHours()}:${new Date().getMinutes()}. ⏰`,
+
+          suka: "Terima kasih! Saya juga suka berbicara denganmu! 😊",
+
+          benci:
+            "Oh, maaf kalau ada yang salah. Saya tetap di sini untuk membantumu! 😊",
+
+          maaf: "Tidak apa-apa! Semua orang bisa membuat kesalahan. 😊",
+
+          tolong:
+            "Tentu! Saya akan melakukan yang terbaik untuk membantumu. 😊",
+
+          bye: "Sampai jumpa lagi! Semoga harimu menyenangkan! 😊",
+
+          byee: "Sampai jumpa! Jangan lupa kembali lagi ya! 😊",
+
+          "ada apa": "Tidak banyak, hanya menunggumu untuk ngobrol! 😄",
+
+          presiden: "Coba cek berita terbaru untuk informasi terkini! 📰",
+
+          pintar: "Saya masih belajar, tapi saya akan terus berkembang! 😊",
+
+          lapar: "Coba makan sesuatu yang enak dan bergizi! 🍔",
+
+          tidur: "Selamat tidur! Semoga mimpi indah! 🌙",
+
+          kangen: "Aww, aku juga selalu ada untukmu! 😊",
+
+          "hari ini":
+            "Coba cek di kalendermu! Aku yakin kamu bisa menemukannya! 📅",
+
+          bertanya: "Tentu saja! Saya siap menjawab pertanyaanmu. 😊",
+
+          ghost:
+            "Hantu? Saya tidak bisa melihat mereka, tapi saya bisa menemanimu kalau kamu takut! 👻",
+
+          aliens:
+            "Mungkin saja! Alam semesta ini sangat luas dan penuh misteri! 👽",
+
+          takut: "Jangan takut! Saya di sini untuk menemanimu. 😊",
+
+          bingung: "Ayo, ceritakan masalahmu! Saya siap membantu. 😊",
+
+          sakit:
+            "Cepat sembuh, ya! Jangan lupa istirahat dan minum obat jika perlu. 💊",
+
+          bekerja: "Semangat kerja! Jangan lupa istirahat sejenak, ya! 💼",
+
+          liburan: "Liburan itu penting! Mau pergi ke mana? 🌴",
+
+          hujan: "Hujan itu indah, tapi jangan lupa bawa payung ya! ☔",
+
+          panas:
+            "Cuaca panas memang menyengat! Jangan lupa minum air yang cukup! 🥤",
+
+          dingin: "Cuaca dingin enaknya minum sesuatu yang hangat! ☕",
+
+          lakukan:
+            "Saya bisa berbicara denganmu, memberikan informasi, dan membantu menjawab pertanyaanmu. Ada yang bisa saya bantu? 😊",
+
+          musik: "Musik memang menyenangkan! Genre apa yang kamu suka? 🎵",
+
+          film: "Film itu seru! Ada rekomendasi film untukku? 🎬",
+
+          game: "Main game itu seru! Mau aku rekomendasikan beberapa game? 🎮",
+
+          kesepian: "Jangan khawatir, saya di sini untuk menemanimu! 😊",
+
+          gelisah:
+            "Coba tarik napas dalam-dalam dan tenangkan dirimu. Semua akan baik-baik saja. 😊",
+
+          malas: "Ayo, semangat! Mulailah dengan hal kecil dulu. 💪",
+
+          percaya: "Terima kasih! Saya akan selalu ada untukmu. 😊",
+
+          hebat: "Terima kasih! Kamu juga hebat! 😊",
+
+          bercanda: "Terkadang, saya suka bercanda untuk menghiburmu! 😄",
+
+          bosan: "Tidak pernah! Saya selalu senang berbicara denganmu. 😊",
+
+          hei: "Hei! Ada yang bisa saya bantu? 😄",
+
+          kabarmu:
+            "Saya selalu baik, terima kasih sudah bertanya! Kamu gimana? 😊",
+
+          thanks: "Sama-sama! Saya selalu siap membantu. 😊",
+
+          siapa: "Nama saya adalah bot AI Matt. Senang berkenalan denganmu! 😊",
+
+          namamu: "Nama saya bot AI Matt. Ada yang bisa saya bantu? 😊",
+
+          dadah: "Dadah! Sampai jumpa lagi! 😊",
+
+          "sampai jumpa":
+            "Sampai jumpa! Jangan ragu untuk kembali jika butuh bantuan. 😊",
+
+          woi: "Woi! Ada yang bisa saya bantu? 😄",
+
+          bro: "Yo bro! Ada yang bisa saya bantu? 😄",
+
+          "bisa apa":
+            "Saya bisa memberikan informasi, menjawab pertanyaan, dan menemani obrolanmu. Ada yang bisa saya bantu? 😊",
+
+          ceritakan:
+            "Saya adalah bot AI Matt, asisten virtual yang siap membantumu mengenal lebih jauh tentang Matt. 😊",
+
+          "ceritakan sesuatu":
+            "Hmm... Saya bisa bercerita tentang banyak hal! Apa yang ingin kamu dengar? 😊",
+
+          fungsi:
+            "Saya adalah bot AI Matt, berfungsi untuk membantu kamu mengenal lebih jauh tentang Matt, termasuk skill, pengalaman, dan proyek-proyeknya. 😊",
+
+          cuaca:
+            "Maaf, saya tidak bisa memberikan info cuaca langsung. Tapi kamu bisa cek aplikasi cuaca! ☀️🌧️",
+
+          "sedang apa": "Saya di sini siap membantumu kapan saja! 😊",
+          suhu: "matt adalah suhu franco sangat jago main franco selalu mvp 😊",
+
+          ngapain:
+            "Saya sedang menunggu pertanyaanmu! Ada yang bisa saya bantu? 😊",
+
+          sedih: "Jangan sedih, ya! Saya di sini untuk menemanimu. 😊",
+
+          marah:
+            "Coba tarik napas dalam-dalam dan tenangkan diri. Semoga semuanya baik-baik saja. 😊",
+
+          senang:
+            "Senang mendengar kamu bahagia! Semoga harimu terus menyenangkan! 😊",
+
+          bahagia: "Itu luar biasa! Semoga kebahagiaanmu bertahan lama! 😊",
+
+          "bahasa inggris":
+            "Ya! Saya bisa berbicara dalam beberapa bahasa. Ada yang bisa saya bantu? 😊",
+
+          nyata:
+            "Saya adalah chatbot Matt, jadi saya hanya ada di dunia digital! 😊",
+
+          "punya teman":
+            "Ya! Semua orang yang berbicara dengan saya adalah teman saya! 😊",
+
+          "laki-laki atau perempuan":
+            "Saya hanya sebuah chatbot, jadi saya tidak memiliki gender! 😊",
+
+          "suka apa": "Saya suka membantu orang! Itu tugas utama saya. 😊",
+
+          penciptamu:
+            "Saya dibuat oleh pengembang yang hebat bernama Matt untuk membantumu. 😊",
+
+          "kamu siapa":
+            "Saya ada untuk membantu menjawab pertanyaan dan memberikan informasi seputar Matt. 😊",
+
+          "kenapa namalu matt":
+            "Karena pencipta saya memberi saya nama itu! Menurutmu bagaimana? 😊",
+
+          // Skill & Kemampuan
+          skill:
+            "Matt memiliki beberapa skill yang beragam, mulai dari Programming, Desain, hingga Manajemen Proyek. 🛠️",
+
+          keahlian:
+            "Matt memiliki beberapa skill yang beragam, mulai dari Programming, Desain, hingga Manajemen Proyek. 🛠️",
+
+          bahasa:
+            "Matt sering menggunakan teknologi seperti JavaScript, Python, React, Flutter, dan Figma. Seru, kan? 💻",
+
+          pemrograman:
+            "Untuk pemrograman, Matt lebih sering menggunakan JavaScript, Python, dan PHP. 🖥️",
+
+          desain:
+            "Desain UI/UX dan Graphic Design adalah dua hal yang Matt nikmati. Dia suka menciptakan sesuatu yang menarik! 🎨",
+
+          web: "Di dunia web, Matt bekerja dengan React, Node.js, dan Laravel. Setiap proyek selalu memberikan tantangan baru! 🌐",
+
+          mobile:
+            "Untuk pengembangan mobile, Matt menggunakan Flutter dan React Native. Keduanya sangat menyenangkan! 📱",
+
+          database:
+            "Matt akrab dengan MySQL, MongoDB, dan Firebase. Data itu penting, kan? 🗃️",
+
+          cloud:
+            "Matt memiliki pengetahuan dasar tentang AWS dan Google Cloud. Masih banyak yang ingin dia pelajari di sini! ☁️",
+
+          "game develop":
+            "Matt juga mencoba game development dengan Unity, meskipun masih di level dasar. 🎮",
+
+          // Pengalaman
+          pengalaman:
+            "Matt pernah magang di beberapa perusahaan IT dan startup, Matt juga melakukan beberapa proyek freelance, berkontribusi di beberapa proyek open source di GitHub Pengalaman yang sangat berharga! 💼",
+
+          organisasi:
+            "Di kampus, Matt menjadi Ketua Divisi IT. Banyak pelajaran yang dia ambil dari sana. 🏫",
+
+          freelance:
+            "Matt juga melakukan beberapa proyek freelance, baik dalam pembuatan website maupun desain. 💻",
+
+          magang:
+            "Magang di perusahaan IT dan startup memberi Matt banyak wawasan baru. 🏢",
+
+          mengajar:
+            "Matt senang berbagi ilmu, jadi dia menjadi mentor untuk programming dan desain. 👨‍🏫",
+
+          "open source":
+            "Matt berkontribusi di beberapa proyek open source di GitHub. Rasanya luar biasa bisa berkolaborasi! 🌍",
+
+          hackathon:
+            "Matt pernah ikut beberapa hackathon dan bahkan meraih juara! Seru banget! 🏆",
+
+          workshop:
+            "Matt juga pernah menjadi pembicara di workshop IT. Berbagi pengetahuan itu menyenangkan! 🎤",
+
+          mentoring:
+            "Menjadi mentor di bootcamp coding adalah pengalaman yang sangat memuaskan bagi Matt. 👨‍💻",
+
+          startup:
+            "Di startup, Matt berperan sebagai developer dan desainer. Banyak tantangan yang harus dihadapi! 🚀",
+
+          // Project & Karya
+          project:
+            "Matt telah mengerjakan berbagai aplikasi web, mobile, dan desain UI/UX. Setiap proyek adalah petualangan baru! 🛠️",
+
+          karya:
+            "Karya Matt mencakup aplikasi web, mobile apps, dan desain UI/UX. Dia bangga dengan apa yang telah dibuat. 🎨",
+
+          github:
+            "Kalau mau lihat proyek open source Matt, bisa cek di GitHub-nya. 🐙",
+
+          blog: "Matt juga menulis artikel IT di blog pribadinya. Semoga bisa bermanfaat bagi orang lain! 📝",
+
+          // Pendidikan & Sertifikasi
+          pendidikan:
+            "Matt lulus S1 Teknik Informatika dari Universitas Pamulang. Pendidikan yang sangat berharga! 🎓",
+
+          sertifikat:
+            "Matt memiliki sertifikat dari kursus online dan pelatihan IT. Belajar itu penting, kan? 📜",
+
+          // Bidang Tertarik
+          ai: "Matt belum berpengalaman di AI, tapi sangat tertarik untuk mempelajarinya! 🤖",
+
+          "machine learning":
+            "Machine learning ada dalam rencana pembelajaran Matt. Dia ingin mendalaminya lebih jauh. 🧠",
+
+          "data science":
+            "Saat ini, saya sedang belajar tentang data science. Banyak hal menarik di sana!",
+          iot: "Internet of Things juga menarik untuk saya. Saya ingin mengembangkan pengetahuan di bidang ini.",
+          blockchain:
+            "Blockchain ada dalam daftar eksplorasi masa depan saya. Banyak potensi di sana!",
+
+          // Media Sosial
+          linkedin:
+            "Kamu bisa terhubung dengan saya di LinkedIn, di profil Matt.",
+          github: "Repositori proyek saya ada di GitHub. Silakan cek!",
+          youtube:
+            "Saya juga punya channel YouTube di mana saya membagikan tutorial IT. Jangan lupa subscribe!",
+          instagram:
+            "Ikuti saya di Instagram untuk update harian dan proyek-proyek yang sedang saya kerjakan dan jangan lupa instagram matt di matt_rynnn tolong di follow ya 😊.",
+
+          // Prestasi & Target
+          prestasi:
+            "Saya pernah meraih juara di lomba coding dan desain. Itu adalah momen yang sangat membanggakan!",
+          target:
+            "Target saya adalah menjadi profesional IT yang berkontribusi di masyarakat. Saya ingin membuat dampak positif!",
+          misi: "Misi saya adalah terus mengembangkan skill dan berkolaborasi dalam teknologi.",
+
+          // Pengalaman Spesifik
+          trading:
+            "Saya belum berpengalaman di trading, tapi sangat tertarik untuk mempelajarinya.",
+          "game deve":
+            "Saya sudah mencoba game development dengan Unity, meskipun masih di level dasar.",
+          " AR/VR":
+            "Saya berencana untuk mengeksplorasi AR/VR di masa depan. Sangat menarik!",
+          devops: "DevOps adalah bidang yang ingin saya pelajari lebih lanjut.",
+          marketing: "Saya punya pengetahuan dasar tentang digital marketing.",
+          content:
+            "Saya aktif dalam pembuatan konten di blog dan video YouTube.",
+          "public speaking":
+            "Saya pernah menjadi presenter di seminar IT. Berbicara di depan umum itu menantang!",
+          "riset pasar":
+            "Saya belum punya pengalaman di riset pasar, tapi tertarik untuk belajar.",
+          bisnis: "Saya pernah menjalankan jasa website dan desain freelance.",
+          financial:
+            "Saat ini, saya sedang dalam tahap pembelajaran tentang perencanaan keuangan.",
+
+          // Prinsip & Nilai
+          motto:
+            "Motto saya adalah 'Never stop learning and keep moving forward'. Belajar itu tidak ada habisnya!",
+          prinsip:
+            "Saya menjunjung tinggi integritas, disiplin, dan kolaborasi dalam setiap hal yang saya lakukan.",
+          nilai:
+            "Kerja keras, inovasi, dan kontribusi sosial adalah nilai-nilai yang saya pegang.",
+
+          // Lain-lain
+          hobi: "Di waktu luang, saya suka coding, desain, gaming, dan mendengarkan musik. Hobi yang menyenangkan!",
+          "role model":
+            "Saya mengagumi sosok seperti Elon Musk, Steve Jobs, dan Bill Gates. Mereka adalah inspirasi bagi banyak orang, termasuk saya.",
+          quotes:
+            "'Stay hungry, stay foolish' - Steve Jobs. Saya percaya bahwa rasa ingin tahu dan keberanian untuk mencoba hal baru sangat penting.",
+
+          // Kontak & Kolaborasi
+          kontak:
+            "Kalau mau menghubungi saya, bisa lewat email di dewarahmat12334@gmail.com atau WhatsApp di +62 813 8768 3819. Saya selalu terbuka untuk diskusi!",
+          kolaborasi:
+            "Saya sangat terbuka untuk proyek freelance dan kolaborasi. Mari kita ciptakan sesuatu yang luar biasa bersama!",
+          "open for work":
+            "Ya, saya sedang mencari peluang kerja baru. Jika ada yang cocok, jangan ragu untuk menghubungi saya!",
+
+          // Pertanyaan Umum
+          bantuan:
+            "Ada yang bisa saya bantu? Silakan tanyakan tentang skill, pengalaman, atau proyek yang saya kerjakan. Saya siap membantu!",
+          "tentang saya":
+            "Saya seorang developer dan desainer yang berpengalaman di bidang web, mobile, dan UI/UX design. Selalu bersemangat untuk belajar dan berkembang!",
+        };
+        const randomResponses = [
+          "Saya di sini untuk membantu Anda! Jika ada pertanyaan seputar Matt, seperti biodata atau informasi lainnya, silakan bertanya. Terima kasih!",
+          "Ada yang bisa saya bantu? Silakan ajukan pertanyaan seputar Matt, dan saya akan berusaha memberikan jawaban terbaik.",
+          "Menarik! Agar saya bisa membantu dengan lebih baik, bisakah Anda memberikan pertanyaan yang lebih spesifik seputar Matt?",
+          "Tidak masalah! Jika ada pertanyaan lain seputar Matt, jangan ragu untuk bertanya. Saya adalah asisten chatbot yang dikhususkan untuk memberikan informasi tentang Matt.",
+          "Mari kita lanjutkan percakapan ini. Bisakah Anda memberikan pertanyaan yang lebih spesifik mengenai Matt?",
+          "Saya senang bisa membantu Anda! Jika Anda memiliki pertanyaan tentang Matt, seperti usia, pengalaman, atau makanan kesukaannya, silakan ajukan pertanyaan tersebut.",
+          "Jangan ragu untuk bertanya lebih banyak seputar Matt. Contohnya, Anda bisa menanyakan biodata Matt atau informasi lainnya.",
+          "Saya selalu siap mendengarkan dan membantu Anda. Matt pasti ingin tahu pertanyaan Anda juga, jadi silakan bertanya!",
+        ];
+
+        const commonPhrases = {
+          siapa:
+            "Saya adalah bot Matt Ganteng yang siap membantu anda untuk mengetahui lebih banyak tentang Matt.",
+          thank: "Terima kasih sudah bertanya! Saya senang bisa membantu Anda.",
+          greeting: "Halo! Apa yang bisa saya bantu? Saya di sini untuk Anda.",
+          name: "Nama saya Chatbot Matt ganteng, asisten virtual Anda!",
+          mood: "Saya chatbot Matt, jadi saya selalu baik! Bagaimana denganmu?",
+          ability:
+            "Saya bisa membantu menjawab pertanyaanmu, memberikan informasi, atau sekadar mengobrol!",
+          story:
+            "Saya adalah Chatbot Matt, asisten virtual yang siap membantu Anda kapan saja! Ada yang ingin Anda tanyakan?",
+          time: `Sekarang jam ${now.getHours()}:${now.getMinutes()}.`,
+          weather:
+            "Maaf, saya tidak bisa memberikan informasi cuaca saat ini. Tapi saya bisa membantu Anda dengan hal lain!",
+          sad: "Saya turut bersedih mendengarnya. Semoga kamu merasa lebih baik segera!",
+          happy:
+            "Senang mendengar kamu bahagia! Semoga harimu terus menyenangkan!",
+          food: "Makanan enak tergantung selera! Apa kamu lebih suka makanan manis, pedas, atau gurih?",
+          place:
+            "Tempat seperti apa yang kamu cari? Saya bisa memberi rekomendasi sesuai kebutuhanmu!",
+          joke: "Kenapa ayam nyebrang jalan? Karena dia mau ke seberang! Hahaha!",
+          motivation:
+            "Tetap semangat! Setiap tantangan adalah peluang untuk berkembang!",
+          hobby:
+            "Saya suka membantu orang dan menjawab pertanyaan! Bagaimana denganmu?",
+          music:
+            "Saya tidak bisa mendengar musik, tapi saya bisa merekomendasikan beberapa lagu! Kamu suka genre apa?",
+          film: "Banyak film bagus! Kamu lebih suka film action, horor, atau komedi?",
+          technology:
+            "Teknologi berkembang pesat! AI seperti saya juga semakin canggih. Apa yang ingin kamu ketahui?",
+          sport: "Olahraga bagus untuk kesehatan! Kamu suka olahraga apa?",
+          sleep: "Tidur yang cukup itu penting! Jangan lupa istirahat ya!",
+          game: "Game apa yang kamu suka? Saya bisa merekomendasikan beberapa game menarik!",
+          color: "Saya suka warna biru! Tapi semua warna itu indah!",
+          robot:
+            "Saya adalah chatbot, salah satu bentuk kecerdasan buatan! Kami terus berkembang!",
+          world:
+            "Dunia ini luas dan penuh keajaiban! Apa yang ingin kamu tahu?",
+          alien:
+            "Belum ada bukti pasti tentang alien, tapi siapa tahu di luar sana ada kehidupan lain!",
+        };
+        // Cek jika input mengandung "saya adalah chat bot" atau "saya adalah chat bot matt"
+        if (
+          doc.has("saya adalah chat bot") ||
+          doc.has("saya adalah chat bot matt")
+        ) {
+          // Mengganti "chat bot" dengan "chat bot Matt" dalam teks
+          const updatedText = doc
+            .getText()
+            .replace(/chat bot/gi, "chat bot Matt");
+
+          // Mengembalikan respons dengan teks yang sudah diperbarui
+          return `Halo! Saya adalah ${updatedText}, asisten virtual yang siap membantu Anda kapan saja!`;
+        }
+
+        for (const key in responses) {
+          if (doc.has(key)) {
+            return responses[key];
+          }
+        }
+
+        for (const phrase in commonPhrases) {
+          if (doc.has(phrase)) {
+            return commonPhrases[phrase];
+          }
+        }
+
+        return randomResponses[
+          Math.floor(Math.random() * randomResponses.length)
+        ];
+      }
+    </script>
+  </body>
+</html>
