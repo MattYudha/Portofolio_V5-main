@@ -20,6 +20,8 @@
     "@mui/material": "^6.1.6",
     "@mui/styled-engine-sc": "^6.1.6",
     "@react-spring/web": "^9.7.5",
+    "@react-three/drei": "^9.114.0",
+    "@react-three/fiber": "^8.17.10",
     "@shadcn/ui": "^0.0.4",
     "@splinetool/react-spline": "^4.0.0",
     "@splinetool/runtime": "^1.9.37",
@@ -45,6 +47,7 @@
     "styled-components": "^6.1.13",
     "sweetalert2": "^11.15.0",
     "tailwind-merge": "^2.5.5",
+    "three": "^0.170.0",
     "typewriter-effect": "^2.21.0",
     "uuid": "^11.0.5"
   },
@@ -52,6 +55,7 @@
     "@eslint/js": "^9.13.0",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
+    "@types/three": "^0.170.0",
     "@vitejs/plugin-react": "^4.3.3",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.13.0",
@@ -64,7 +68,7 @@
     "tailwindcss": "^3.4.14",
     "vite": "^5.4.10"
   },
-  "description": "Halo semuanya! Perkenalkan, saya Eki Zulfar Rachman, dan pada kesempatan kali ini, saya ingin berbagi proyek website portofolio yang telah saya kembangkan.",
+  "description": "Halo semuanya! Perkenalkan, saya Rahmat Yudi, dan pada kesempatan kali ini, saya ingin berbagi proyek website portofolio yang telah saya kembangkan.",
   "main": "eslint.config.js",
   "keywords": [],
   "author": "",

@@ -1,11 +1,11 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import React, { useState } from 'react';
 import "./index.css";
-import Home from "./Pages/Home";
+import Home3D from "./Pages/Home3D";
 import About from "./Pages/About";
-import AnimatedBackground from "./components/Background";
-import Navbar from "./components/Navbar";
-import Portofolio from "./Pages/Portofolio";
+import Background3D from "./components/Background3D";
+import Navbar3D from "./components/Navbar3D";
+import Portfolio3D from "./Pages/Portfolio3D";
 import ContactPage from "./Pages/Contact";
 import ProjectDetails from "./components/ProjectDetail";
 import WelcomeScreen from "./Pages/WelcomeScreen";
@@ -22,11 +22,11 @@ const LandingPage = ({ showWelcome, setShowWelcome }) => {
 
       {!showWelcome && (
         <>
-          <Navbar />
-          <AnimatedBackground />
-          <Home />
+          <Background3D />
+          <Navbar3D />
+          <Home3D />
           <About />
-          <Portofolio />
+          <Portfolio3D />
           <ContactPage />
           <footer>
             <center>
@@ -48,6 +48,7 @@ const LandingPage = ({ showWelcome, setShowWelcome }) => {
 
 const ProjectPageLayout = () => (
   <>
+    <Background3D />
     <ProjectDetails />
     <footer>
       <center>
