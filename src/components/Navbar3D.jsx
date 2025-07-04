@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Canvas } from "@react-three/fiber";
 import InteractiveNavigation from "../three-scenes/InteractiveNavigation";
 
 const Navbar3D = () => {
@@ -33,10 +34,12 @@ const Navbar3D = () => {
   };
 
   return (
-    <InteractiveNavigation 
-      activeSection={activeSection}
-      onNavigate={handleNavigate}
-    />
+    <Canvas>
+      <InteractiveNavigation 
+        activeSection={activeSection}
+        onNavigate={handleNavigate}
+      />
+    </Canvas>
   );
 };
 

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Canvas } from "@react-three/fiber";
 import { db, collection } from "../firebase";
 import { getDocs } from "firebase/firestore";
 import ProjectGrid3D from "../three-scenes/ProjectCard3D";
@@ -54,7 +55,9 @@ const Portfolio3D = () => {
 
       {/* 3D Project Grid */}
       <div className="px-[5%] md:px-[10%]" data-aos="fade-up" data-aos-delay="200">
-        <ProjectGrid3D projects={projects} />
+        <Canvas>
+          <ProjectGrid3D projects={projects} />
+        </Canvas>
       </div>
 
       {/* View All Projects Button */}
