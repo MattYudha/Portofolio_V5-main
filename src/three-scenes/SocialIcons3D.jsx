@@ -114,8 +114,8 @@ const SocialIcon3D = ({
   );
 };
 
-// Komponen Utama Social Icons 3D
-const SocialIcons3D = () => {
+// Komponen Scene yang berisi useFrame hook
+const SocialIconsScene = () => {
   const groupRef = useRef();
 
   const socialLinks = [
@@ -156,23 +156,32 @@ const SocialIcons3D = () => {
   });
 
   return (
+    <>
+      <ambientLight intensity={0.6} />
+      <pointLight position={[10, 10, 10]} intensity={1} />
+      
+      <group ref={groupRef}>
+        {socialLinks.map((social, index) => (
+          <SocialIcon3D
+            key={index}
+            icon={social.icon}
+            href={social.href}
+            position={social.position}
+            color={social.color}
+            label={social.label}
+          />
+        ))}
+      </group>
+    </>
+  );
+};
+
+// Komponen Utama Social Icons 3D
+const SocialIcons3D = () => {
+  return (
     <div className="w-full h-32">
       <Canvas camera={{ position: [0, 0, 6], fov: 50 }}>
-        <ambientLight intensity={0.6} />
-        <pointLight position={[10, 10, 10]} intensity={1} />
-        
-        <group ref={groupRef}>
-          {socialLinks.map((social, index) => (
-            <SocialIcon3D
-              key={index}
-              icon={social.icon}
-              href={social.href}
-              position={social.position}
-              color={social.color}
-              label={social.label}
-            />
-          ))}
-        </group>
+        <SocialIconsScene />
       </Canvas>
     </div>
   );
