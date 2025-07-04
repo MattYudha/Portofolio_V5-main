@@ -1,20 +1,47 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import React, { useState } from 'react';
 import "./index.css";
-import Home from "./Pages/Home";
+import CosmicOceanHome from "./Pages/CosmicOceanHome";
 import About from "./Pages/About";
-import AnimatedBackground from "./components/Background";
+import CosmicOceanCanvas from "./components/CosmicOceanCanvas";
+import InteractiveNavigation3D from "./components/InteractiveNavigation3D";
+import ProjectCrystals3D from "./components/ProjectCrystals3D";
 import Navbar from "./components/Navbar";
 import Portofolio from "./Pages/Portofolio";
 import ContactPage from "./Pages/Contact";
 import ProjectDetails from "./components/ProjectDetail";
 import WelcomeScreen from "./Pages/WelcomeScreen";
 import { AnimatePresence } from 'framer-motion';
-
-// Import the new unified 3D scene
-import Main3DScene from "./components/Main3DScene";
+import { useEffect } from 'react';
+import { db, collection } from "./firebase";
+import { getDocs } from "firebase/firestore";
 
 const LandingPage = ({ showWelcome, setShowWelcome }) => {
+  const [projects, setProjects] = useState([]);
+
+  // Fetch projects for 3D display
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const projectCollection = collection(db, "projects");
+        const projectSnapshot = await getDocs(projectCollection);
+        const projectData = projectSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+          TechStack: doc.data().TechStack || [],
+        }));
+        setProjects(projectData);
+        localStorage.setItem("projects", JSON.stringify(projectData));
+      } catch (error) {
+        console.error("Error fetching projects:", error);
+      }
+    };
+
+    if (!showWelcome) {
+      fetchProjects();
+    }
+  }, [showWelcome]);
+
   return (
     <>
       <AnimatePresence mode="wait">
@@ -25,25 +52,28 @@ const LandingPage = ({ showWelcome, setShowWelcome }) => {
 
       {!showWelcome && (
         <>
-          {/* Single unified 3D scene */}
-          <Main3DScene />
+          {/* 3D Cosmic Ocean Canvas */}
+          <CosmicOceanCanvas>
+            <InteractiveNavigation3D />
+            <ProjectCrystals3D projects={projects} />
+          </CosmicOceanCanvas>
           
-          {/* Regular 2D components */}
+          {/* 2D UI Components */}
           <Navbar />
-          <AnimatedBackground />
-          <Home />
+          <CosmicOceanHome />
           <About />
           <Portofolio />
           <ContactPage />
-          <footer>
+          
+          <footer className="relative z-10">
             <center>
-              <hr className="my-3 border-gray-400 opacity-15 sm:mx-auto lg:my-6 text-center" />
-              <span className="block text-sm pb-4 text-gray-500 text-center dark:text-gray-400">
-                © 2023{" "}
-                <a href="https://flowbite.com/" className="hover:underline">
+              <hr className="my-3 border-cyan-500/20 opacity-50 sm:mx-auto lg:my-6 text-center" />
+              <span className="block text-sm pb-4 text-slate-400 text-center">
+                © 2024{" "}
+                <a href="https://flowbite.com/" className="hover:underline text-cyan-400">
                   Matt™
                 </a>
-                . All Rights Reserved.
+                . Navigating Digital Oceans.
               </span>
             </center>
           </footer>
@@ -58,13 +88,13 @@ const ProjectPageLayout = () => (
     <ProjectDetails />
     <footer>
       <center>
-        <hr className="my-3 border-gray-400 opacity-15 sm:mx-auto lg:my-6 text-center" />
-        <span className="block text-sm pb-4 text-gray-500 text-center dark:text-gray-400">
-          © 2023{" "}
-          <a href="https://flowbite.com/" className="hover:underline">
+        <hr className="my-3 border-cyan-500/20 opacity-50 sm:mx-auto lg:my-6 text-center" />
+        <span className="block text-sm pb-4 text-slate-400 text-center">
+          © 2024{" "}
+          <a href="https://flowbite.com/" className="hover:underline text-cyan-400">
             Matt™
           </a>
-          . All Rights Reserved.
+          . Navigating Digital Oceans.
         </span>
       </center>
     </footer>
