@@ -1,16 +1,9 @@
 import React from 'react';
-import CosmicOceanBackground from '../three-scenes/CosmicOceanBackground';
-import { useScrollAndMouse } from '../hooks/useScrollAndMouse';
 
+// This component no longer renders its own Canvas
+// The 3D scene is now handled by Main3DScene
 const Background3D = () => {
-  const { scrollY, mousePosition } = useScrollAndMouse();
-
-  return (
-    <CosmicOceanBackground 
-      scrollY={scrollY} 
-      mousePosition={mousePosition} 
-    />
-  );
+  return null; // The 3D background is now rendered in Main3DScene
 };
 
 export default Background3D;

@@ -1,15 +1,18 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import React, { useState } from 'react';
 import "./index.css";
-import Home3D from "./Pages/Home3D";
+import Home from "./Pages/Home";
 import About from "./Pages/About";
-import Background3D from "./components/Background3D";
-import Navbar3D from "./components/Navbar3D";
-import Portfolio3D from "./Pages/Portfolio3D";
+import AnimatedBackground from "./components/Background";
+import Navbar from "./components/Navbar";
+import Portofolio from "./Pages/Portofolio";
 import ContactPage from "./Pages/Contact";
 import ProjectDetails from "./components/ProjectDetail";
 import WelcomeScreen from "./Pages/WelcomeScreen";
 import { AnimatePresence } from 'framer-motion';
+
+// Import the new unified 3D scene
+import Main3DScene from "./components/Main3DScene";
 
 const LandingPage = ({ showWelcome, setShowWelcome }) => {
   return (
@@ -22,11 +25,15 @@ const LandingPage = ({ showWelcome, setShowWelcome }) => {
 
       {!showWelcome && (
         <>
-          <Background3D />
-          <Navbar3D />
-          <Home3D />
+          {/* Single unified 3D scene */}
+          <Main3DScene />
+          
+          {/* Regular 2D components */}
+          <Navbar />
+          <AnimatedBackground />
+          <Home />
           <About />
-          <Portfolio3D />
+          <Portofolio />
           <ContactPage />
           <footer>
             <center>
@@ -48,7 +55,6 @@ const LandingPage = ({ showWelcome, setShowWelcome }) => {
 
 const ProjectPageLayout = () => (
   <>
-    <Background3D />
     <ProjectDetails />
     <footer>
       <center>

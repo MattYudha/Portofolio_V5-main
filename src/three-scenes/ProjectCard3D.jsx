@@ -1,142 +1,115 @@
 import React, { useRef, useState } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { Box, Text, useTexture, Html } from '@react-three/drei';
+import { useFrame } from '@react-three/fiber';
+import { Box, Text, Plane } from '@react-three/drei';
+import { useNavigate } from 'react-router-dom';
 import * as THREE from 'three';
-import { Link } from 'react-router-dom';
 
-// Komponen Kartu Proyek 3D
-const ProjectCard3D = ({ 
-  project, 
-  position = [0, 0, 0], 
-  rotation = [0, 0, 0] 
-}) => {
+// Individual project card component
+const ProjectCard3D = ({ project, position, index }) => {
   const meshRef = useRef();
   const [hovered, setHovered] = useState(false);
-  const [clicked, setClicked] = useState(false);
+  const navigate = useNavigate();
 
   useFrame((state) => {
     if (meshRef.current) {
-      // Rotasi dasar
-      meshRef.current.rotation.y = rotation[1] + state.clock.elapsedTime * 0.2;
+      // Floating animation
+      meshRef.current.position.y = position[1] + Math.sin(state.clock.getElapsedTime() + index) * 0.1;
       
-      // Efek hover
-      const targetScale = hovered ? 1.1 : 1;
-      meshRef.current.scale.lerp(
-        new THREE.Vector3(targetScale, targetScale, targetScale), 
-        0.1
-      );
-
-      // Efek floating
-      meshRef.current.position.y = position[1] + Math.sin(state.clock.elapsedTime + position[0]) * 0.1;
+      // Rotation animation
+      meshRef.current.rotation.y += 0.005;
+      
+      if (hovered) {
+        meshRef.current.scale.setScalar(1.1);
+      } else {
+        meshRef.current.scale.setScalar(1);
+      }
     }
   });
 
-  const handlePointerOver = () => {
-    setHovered(true);
-    document.body.style.cursor = 'pointer';
-  };
-
-  const handlePointerOut = () => {
-    setHovered(false);
-    document.body.style.cursor = 'default';
-  };
-
   const handleClick = () => {
-    setClicked(true);
-    setTimeout(() => setClicked(false), 200);
+    if (project.id) {
+      navigate(`/project/${project.id}`);
+    }
   };
 
   return (
-    <group position={position}>
-      {/* Kartu Utama */}
-      <Box
-        ref={meshRef}
-        args={[2, 2.5, 0.1]}
-        onPointerOver={handlePointerOver}
-        onPointerOut={handlePointerOut}
-        onClick={handleClick}
-      >
+    <group
+      ref={meshRef}
+      position={position}
+      onPointerEnter={() => setHovered(true)}
+      onPointerLeave={() => setHovered(false)}
+      onClick={handleClick}
+    >
+      {/* Main project box */}
+      <Box args={[2, 2.5, 0.2]}>
         <meshStandardMaterial
-          color={hovered ? '#6366f1' : '#1e293b'}
+          color={hovered ? '#8b5cf6' : '#6366f1'}
           transparent
-          opacity={0.9}
-          emissive={hovered ? '#6366f1' : '#000000'}
-          emissiveIntensity={hovered ? 0.2 : 0}
+          opacity={0.8}
+          emissive={hovered ? '#8b5cf6' : '#6366f1'}
+          emissiveIntensity={hovered ? 0.3 : 0.1}
         />
       </Box>
-
-      {/* Glow Effect */}
-      {hovered && (
-        <Box args={[2.2, 2.7, 0.05]} position={[0, 0, -0.1]}>
-          <meshBasicMaterial
-            color="#6366f1"
-            transparent
-            opacity={0.3}
-          />
-        </Box>
-      )}
-
-      {/* HTML Overlay untuk konten */}
-      <Html
-        transform
-        occlude
-        position={[0, 0, 0.06]}
-        style={{
-          width: '180px',
-          height: '220px',
-          pointerEvents: hovered ? 'auto' : 'none',
-        }}
+      
+      {/* Project title */}
+      <Text
+        position={[0, 0.8, 0.11]}
+        fontSize={0.15}
+        color="white"
+        anchorX="center"
+        anchorY="middle"
+        maxWidth={1.8}
       >
-        <div className="w-full h-full p-3 text-white text-center">
-          <div className="mb-2">
-            <img
-              src={project.Img}
-              alt={project.Title}
-              className="w-full h-20 object-cover rounded-lg"
-            />
-          </div>
-          <h3 className="text-sm font-bold mb-1 truncate">{project.Title}</h3>
-          <p className="text-xs text-gray-300 mb-2 line-clamp-2">
-            {project.Description}
-          </p>
-          {hovered && (
-            <div className="space-y-1">
-              <Link
-                to={`/project/${project.id}`}
-                className="block text-xs bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded transition-colors"
-              >
-                View Details
-              </Link>
-              {project.Link && (
-                <a
-                  href={project.Link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block text-xs bg-purple-600 hover:bg-purple-700 px-2 py-1 rounded transition-colors"
-                >
-                  Live Demo
-                </a>
-              )}
-            </div>
-          )}
-        </div>
-      </Html>
-
-      {/* Partikel efek */}
+        {project.Title || 'Project Title'}
+      </Text>
+      
+      {/* Project description */}
+      <Text
+        position={[0, 0.2, 0.11]}
+        fontSize={0.08}
+        color="#e2e8f0"
+        anchorX="center"
+        anchorY="middle"
+        maxWidth={1.6}
+      >
+        {project.Description ? project.Description.substring(0, 100) + '...' : 'Project description...'}
+      </Text>
+      
+      {/* Tech stack indicator */}
+      {project.TechStack && project.TechStack.length > 0 && (
+        <Text
+          position={[0, -0.8, 0.11]}
+          fontSize={0.06}
+          color="#a855f7"
+          anchorX="center"
+          anchorY="middle"
+          maxWidth={1.8}
+        >
+          {project.TechStack.slice(0, 3).join(' • ')}
+        </Text>
+      )}
+      
+      {/* Hover effect particles */}
       {hovered && (
         <group>
-          {Array.from({ length: 8 }).map((_, i) => (
-            <mesh
+          {[...Array(8)].map((_, i) => (
+            <Box
               key={i}
+              args={[0.05, 0.05, 0.05]}
               position={[
-                Math.sin((i / 8) * Math.PI * 2) * 1.5,
                 Math.cos((i / 8) * Math.PI * 2) * 1.5,
-                0.2
+                Math.sin((i / 8) * Math.PI * 2) * 1.5,
+                0.3
               ]}
             >
-              <sphereGeometry args={[0.02, 8, 8]} />
-              <meshBasicMaterial color="#6366f1" />
-            </mesh>
+              <meshStandardMaterial
+                color="#a855f7"
+                transparent
+                opacity={0.6}
+                emissive="#a855f7"
+                emissiveIntensity={0.5}
+              />
+            </Box>
           ))}
         </group>
       )}
@@ -144,17 +117,23 @@ const ProjectCard3D = ({
   );
 };
 
-// Komponen Grid Proyek 3D
-const ProjectGrid3D = ({ projects }) => {
+// Export the project grid elements (not wrapped in Canvas)
+export const ProjectGridElements = ({ projects = [], scrollY = 0, mousePosition = { x: 0, y: 0 } }) => {
   const groupRef = useRef();
 
   useFrame((state) => {
     if (groupRef.current) {
-      groupRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.1) * 0.05;
+      // React to scroll
+      groupRef.current.position.z = scrollY * 0.002;
+      
+      // React to mouse
+      groupRef.current.rotation.x = mousePosition.y * 0.05;
+      groupRef.current.rotation.y = mousePosition.x * 0.05;
     }
   });
 
-  const getProjectPosition = (index) => {
+  // Calculate grid positions
+  const getGridPosition = (index) => {
     const cols = 3;
     const spacing = 3;
     const row = Math.floor(index / cols);
@@ -162,31 +141,28 @@ const ProjectGrid3D = ({ projects }) => {
     
     return [
       (col - 1) * spacing,
-      (1 - row) * spacing,
-      0
+      -row * spacing - 5, // Start below the navigation
+      -2
     ];
   };
 
   return (
-    <div className="w-full h-screen">
-      <Canvas camera={{ position: [0, 0, 8], fov: 75 }}>
-        <ambientLight intensity={0.6} />
-        <pointLight position={[10, 10, 10]} intensity={1} />
-        <pointLight position={[-10, -10, -10]} intensity={0.5} />
-        
-        <group ref={groupRef}>
-          {projects.slice(0, 6).map((project, index) => (
-            <ProjectCard3D
-              key={project.id}
-              project={project}
-              position={getProjectPosition(index)}
-              rotation={[0, index * 0.1, 0]}
-            />
-          ))}
-        </group>
-      </Canvas>
-    </div>
+    <group ref={groupRef}>
+      {projects.slice(0, 9).map((project, index) => (
+        <ProjectCard3D
+          key={project.id || index}
+          project={project}
+          position={getGridPosition(index)}
+          index={index}
+        />
+      ))}
+    </group>
   );
+};
+
+// Keep the original wrapper for backward compatibility if needed
+const ProjectGrid3D = (props) => {
+  return <ProjectGridElements {...props} />;
 };
 
 export default ProjectGrid3D;
